@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#root {
+  width: 100%;
+}
+
+.emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+}
+
+.top-nav {
+  position: sticky;
+  top: 0;
+}
+
+@font-face {
+  font-family: 'Noto Color Emoji';
+  src: url('./fonts/NotoColorEmoji.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* Apply it as a fallback */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+               'Helvetica Neue', Arial, sans-serif,
+               'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji';
+}
