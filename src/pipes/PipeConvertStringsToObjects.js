@@ -31,7 +31,7 @@ export class PipeConvertStringsToObjects {
     }
 
     for (const key in this.obj) {
-      if (!this.obj.prototype.hasOwnProperty(key)) continue;
+      if (!this.obj.hasOwnProperty(key)) continue;
 
       const value = this.obj[key];
 
