@@ -35,6 +35,7 @@ export default defineConfig([
       'react-hooks/exhaustive-deps': 'warn',
       'react-hooks/exhaustive-deps': 'off',
       'react-hooks/set-state-in-effect': 'off',
+      'no-prototype-builtins': 'off',
     },
   },
   {
