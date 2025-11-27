@@ -1,149 +1,210 @@
-import { PipeConvertStringsToObjects } from "../pipes/ConvertStringsToObjects";
-import FlatObjectToNestedObject from "../pipes/FlatObjectToNestedObject";
+import { PipeConvertStringsToObjects } from "../pipes/PipeConvertStringsToObjects";
 import ioService from "../services/io.service";
 import { cloneDeep } from "lodash";
 import statisticsService from "../services/statistics.service";
 import projectStructureOptions from "../utils/projectStructures";
-import { PipeStringToFilename } from "../pipes/StringToFilename";
+import { PipeStringToFilename } from "../pipes/PipeStringToFilename";
 import projectService from "../services/project.service";
+import PipeFlatObjectToNestedObject from "../pipes/PipeFlatObjectToNestedObject";
 
 export class Project {
-  constructor(
-    id = undefined,
-    lastModified = undefined,
-    createdAt = undefined,
+  constructor({
+    id,
+    lastModified,
+    createdAt,
     name,
-    slug = undefined,
+    slug,
     type = "custom",
     objectType = "flated",
     folder,
-    description,
-    structure = undefined,
+    description = "",
+    structure,
     languages = [],
     translation = {},
     stats,
-    initialize = true
-  ) {
-    this.id = id != undefined ? id : Math.random().toString(36).substr(2, 9);
-    this.description = description;
-    this.lastModified = lastModified ?? new Date();
-    this.createdAt = createdAt ?? new Date();
+    initialize = true,
+  } = {}) {
+    // === Validation ===
+    if (!name) throw new Error("Project name is required");
+    if (!folder) throw new Error("Project folder path is required");
+    if (!Array.isArray(languages) || languages.length === 0) {
+      throw new Error("At least one language is required");
+    }
+
+    // === IDs & Timestamps ===
+    this.id = id ?? this._generateId();
+    this.createdAt = createdAt ? new Date(createdAt) : new Date();
+    this.lastModified = lastModified ? new Date(lastModified) : new Date();
+
+    // === Metadata ===
     this.name = name;
-    this.slug = slug ?? this.createSlug(name);
+    this.slug = slug ?? this._createSlug(name);
+    this.description = description;
     this.type = type;
-    this.files = [];
+    this.objectStructureType = objectType;
     this.folder = folder;
+
+    // === Languages & Translation ===
+    this.languages = this._ensureBaseLanguage(languages);
+    this.translation = cloneDeep(translation);
+
+    // === Structure ===
+    this.structure = structure;
+    if (!this.structure && this.type !== "custom") {
+      this._setStructureFromType(this.type);
+    }
+
+    // === Stats ===
+    this.stats = stats
+      ? {
+          lastEditedKey: stats.lastEditedKey || "",
+          lastEditedKeyAt: new Date(stats.lastEditedKeyAt || Date.now()),
+        }
+      : {
+          lastEditedKey: "",
+          lastEditedKeyAt: new Date(),
+        };
+
+    // === UI State ===
     this.progress = 100;
     this.emptySlots = 0;
     this.emptySlotsAsString = "";
     this.status = "completed";
-    this.selectedLanguages = languages;
-    this.objectStructureType = objectType;
-    this.translation = translation;
-    this.structure = structure;
-    if (!structure && type != "custom") {
-      this.setStructreFromType(type);
+
+    // === Initialization ===
+    if (initialize) {
+      this.createTranslationObject();
     }
-    this.stats = {
-      lastEditedKey: "",
-      lastEditedKeyAt: new Date(),
-    };
-    if (stats) {
-      this.stats = stats;
-      this.stats.lastEditedKeyAt = new Date(stats.lastEditedKeyAt);
-    }
-    if (initialize) this.createTranslationObject();
   }
 
+  // --- Private Helpers ---
+  _generateId() {
+    return Math.random().toString(36).substring(2, 11);
+  }
+
+  _createSlug(str) {
+    return (
+      this._generateId() +
+      "_" +
+      str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-+|-+$/g, "")
+    );
+  }
+
+  _ensureBaseLanguage(languages) {
+    const hasBase = languages.some((lang) => lang.base);
+    if (hasBase) return languages;
+    return languages.map((lang, i) => ({ ...lang, base: i === 0 }));
+  }
+
+  _setStructureFromType(type) {
+    const option = projectStructureOptions.find((opt) => opt.value === type);
+    if (!option) {
+      console.warn(`Unknown project type: ${type}`);
+      return;
+    }
+    this.structure = option.regex;
+  }
+
+  _formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  }
+
+  // --- Public API ---
   getFilename() {
     return `${new PipeStringToFilename(this.slug).safe().value}.prj`;
   }
 
-  setStructreFromType(type) {
-    if (type === "custom") return;
-    this.structure = projectStructureOptions.find(
-      (x) => x.value === type
-    ).regex;
-  }
-
-  async clone() {
-    const clone = new Project(
-      this.id,
-      this.lastModified,
-      this.createdAt,
-      this.name,
-      this.slug,
-      this.type,
-      this.objectStructureType,
-      this.folder,
-      this.description,
-      this.structure,
-      this.selectedLanguages,
-      this.translation,
-      this.stats,
-      true
-    );
-    await clone.calculation();
-    return clone;
-  }
-
   async calculation() {
-    await statisticsService.getTranslatedProgess(this);
+    this.progress = await statisticsService.getTranslatedProgress(this);
     this.emptySlots = await statisticsService.getEmptySlotsCount(this);
-    const emptySluts = await statisticsService.getEmptySlots(this);
-    let emptySlotsAsArray = [];
-    for (const key in emptySluts) {
-      if (emptySluts[key] > 0) {
-        emptySlotsAsArray.push(
-          this.selectedLanguages.find((x) => x.code === key)?.name
-        );
-      }
-    }
-    this.emptySlotsAsString = emptySlotsAsArray.join(", ");
-  }
+    const emptySlotsByLang = await statisticsService.getEmptySlots(this);
 
-  setProgress(progress) {
-    this.progress = progress;
-    if (progress < 100) this.status = "missing";
-    else this.status = "completed";
-  }
+    const missingLangNames = Object.entries(emptySlotsByLang)
+      .filter(([_, count]) => count > 0)
+      .map(([code]) => this.languages.find((lang) => lang.code === code)?.name)
+      .filter(Boolean);
 
-  createSlug(str) {
-    return (
-      Math.random().toString(36).substr(2, 9).toString() +
-      "_" +
-      str
-        .toLowerCase() // Convert to lowercase
-        .normalize("NFD") // Normalize unicode characters (split accented chars)
-        .replace(/[\u0300-\u036f]/g, "") // Remove diacritical marks (accents)
-        .replace(/[^a-z0-9\s-]/g, "") // Remove all non-alphanumeric chars except spaces/hyphens
-        .replace(/\s+/g, "-") // Replace spaces with hyphens
-        .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
-        .replace(/^-+|-+$/g, "")
-    ); // Trim hyphens from start/end
-  }
-
-  getFomatedDate(date) {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Month is 0-indexed
-    const day = date.getDate().toString().padStart(2, "0");
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
+    this.emptySlotsAsString = missingLangNames.join(", ");
+    this.status = this.progress < 100 ? "missing" : "completed";
   }
 
   getLastModifiedAsString() {
-    return this.getFomatedDate(this.lastModified);
+    return this._formatDate(this.lastModified);
   }
 
   getCreatedAtAsString() {
-    return this.getFomatedDate(this.createdAt);
+    return this._formatDate(this.createdAt);
   }
 
   getLastEditedKeyAttAsString() {
-    return this.getFomatedDate(this.stats.lastEditedKeyAt);
+    return this._formatDate(this.stats.lastEditedKeyAt);
   }
+
+  getDefaultTranslation() {
+    return this.translation[this.languages.find((lang) => lang.base)?.code];
+  }
+
+  // --- Translation Management ---
+
+  createKey(tKey, description, values = {}, tags = []) {
+    const now = new Date();
+    this.stats.lastEditedKey = tKey;
+    this.stats.lastEditedKeyAt = now;
+
+    for (const langCode in this.translation) {
+      const langData = this.translation[langCode].data;
+      const exists = langData.some((item) => item.key === tKey);
+      if (!exists) {
+        langData.push({
+          id: this._generateId(),
+          key: tKey,
+          value: String(values[langCode] ?? ""),
+          tags: Array.isArray(tags) ? tags : [],
+          description: String(description ?? ""),
+        });
+      }
+    }
+  }
+
+  updateKey(tKey, description, newKey = tKey, values = {}, tags = []) {
+    const now = new Date();
+    this.stats.lastEditedKey = newKey;
+    this.stats.lastEditedKeyAt = now;
+
+    for (const langCode in this.translation) {
+      const langData = this.translation[langCode].data;
+      const item = langData.find((x) => x.key === tKey);
+      if (item) {
+        item.key = newKey;
+        item.value = String(values[langCode] ?? item.value);
+        item.description = String(description ?? item.description);
+        item.tags = Array.isArray(tags) ? tags : [];
+      }
+    }
+  }
+
+  async deleteKeyBySetOfKeys(keySet) {
+    if (!(keySet instanceof Set)) return;
+    for (const langCode in this.translation) {
+      this.translation[langCode].data = this.translation[langCode].data.filter(
+        (item) => !keySet.has(item.key)
+      );
+    }
+  }
+
+  // --- File I/O ---
 
   async save() {
     this.lastModified = new Date();
@@ -154,168 +215,61 @@ export class Project {
     await this.calculation();
   }
 
-  createKey(tKey, description, values = {}, tags = []) {
-    // values have only code: value | {fr: "Hello World, it's Local Localizator!", en: "Hello World, it's Local Localizator!"}
-    for (const key in this.translation) {
-      const t = this.translation[key].data.find((x) => x.key === tKey);
-      if (!t) {
-        this.stats.lastEditedKey = tKey;
-        this.stats.lastEditedKeyAt = new Date();
+  createTranslationObject() {
+    const baseLang = this.languages.find((lang) => lang.base);
+    const baseCode = baseLang.code;
 
-        this.translation[key].data.push({
-          id: Math.random().toString(36).substr(2, 9),
-          key: tKey,
-          value: values[key] ?? "",
-          tags: tags,
-          description: description,
-        });
-      }
+    // Ensure base language exists in translation
+    if (!this.translation[baseCode]) {
+      this.translation[baseCode] = {
+        language: baseLang,
+        data: new PipeConvertStringsToObjects(
+          JSON.parse('{"hello": "Hello World, it\'s Local Localizator!"}')
+        )
+          .convert()
+          .value.getAllEntries(),
+      };
     }
-  }
 
-  updateKey(tKey, description, newKey, values = {}, tags = []) {
-    // values have only code: value | {fr: "Hello World, it's Local Localizator!", en: "Hello World, it's Local Localizator!"}
-    for (const key in this.translation) {
-      const t = this.translation[key].data.find((x) => x.key === tKey);
-      if (t) {
-        this.stats.lastEditedKey = tKey;
-        this.stats.lastEditedKeyAt = new Date();
-        t.value = values[key] ?? "";
-        t.description = description;
-        t.tags = tags;
-        if (newKey != tKey) {
-          t.key = newKey;
-          this.stats.lastEditedKey = newKey;
-        }
-      }
-    }
-  }
-
-  async deleteKey(tKey) {
-    await new Promise((resolve) => {
-      let index = 0;
-      for (const key in this.translation) {
-        this.translation[key].data = this.translation[key].data.filter(
-          (x) => x.key !== tKey
-        );
-        index++;
-        if (index >= Object.keys(this.translation).length) resolve();
+    // Sync all languages with base structure
+    this.languages.forEach((lang) => {
+      if (!this.translation[lang.code]) {
+        this.translation[lang.code] = {
+          language: lang,
+          data: cloneDeep(this.translation[baseCode].data).map((item) => ({
+            ...item,
+            value: "",
+          })),
+        };
       }
     });
   }
 
-  async deleteKeyById(id) {
-    await new Promise((resolve) => {
-      let index = 0;
-      for (const key in this.translation) {
-        this.translation[key].data = this.translation[key].data.filter(
-          (x) => x.id !== id
-        );
-        index++;
-        if (index >= Object.keys(this.translation).length) resolve();
+  checkAllLanguagesIfTheyExist() {
+    const validCodes = new Set(this.languages.map((lang) => lang.code));
+    Object.keys(this.translation).forEach((code) => {
+      if (!validCodes.has(code)) {
+        delete this.translation[code];
       }
     });
-  }
-
-  async deleteKeyBySetOfIds(setId) {
-    await new Promise((resolve) => {
-      let index = 0;
-      for (const key in this.translation) {
-        this.translation[key].data = this.translation[key].data.filter(
-          (x) => !setId.has(x.id)
-        );
-        index++;
-        if (index >= Object.keys(this.translation).length) resolve();
-      }
-    });
-  }
-
-  async deleteKeyBySet(setOf) {
-    await new Promise((resolve) => {
-      let index = 0;
-      for (const key in this.translation) {
-        this.translation[key].data = this.translation[key].data.filter(
-          (x) => !setOf.has(x.key)
-        );
-        index++;
-        if (index >= Object.keys(this.translation).length) resolve();
-      }
-    });
-  }
-
-  getDefaultTranslation() {
-    const lang = this.selectedLanguages.find((x) => x.base == true);
-    return this.translation[lang.code];
-  }
-
-  async createTranslationObject() {
-    await new Promise((resolve) => {
-      let index = 0;
-      const baseLanguage =
-        this.translation[this.selectedLanguages.find((x) => x.base).code];
-
-      this.selectedLanguages.forEach((lang) => {
-        if (!this.translation[lang.code]) {
-          this.translation[lang.code] = {
-            language: lang,
-            data:
-              baseLanguage != undefined
-                ? cloneDeep(baseLanguage.data).map((item) => {
-                    item.value = "";
-                    return item;
-                  })
-                : new PipeConvertStringsToObjects(
-                    JSON.parse(
-                      '{"hello": "Hello World, it\'s Local Localizator!"}'
-                    )
-                  )
-                    .convert()
-                    .value.getAllEntries(),
-          };
-        }
-        index++;
-        if (index >= this.selectedLanguages.length) resolve();
-      });
-    });
-  }
-
-  async checkAllLanguagesIfTheyExist() {
-    await new Promise((resolve) => {
-      let index = 0;
-      const keys = [];
-      for (const key in this.translation) {
-        if (!this.selectedLanguages.find((x) => x.code === key)) {
-          keys.push(key);
-        }
-      }
-      if (keys.length === 0) resolve();
-
-      keys.forEach((key) => {
-        delete this.translation[key];
-        index++;
-      });
-      if (index >= keys.length) resolve();
-    });
-  }
-
-  hasVariables(str) {
-    return /\{[^}]+\}/.test(str);
   }
 
   parseTemplate(templatePath) {
-    const segments = templatePath.split("/");
-    const tokens = segments
-      .filter((str) => str != null && str !== "" && str != undefined)
+    return templatePath
+      .split("/")
+      .filter(Boolean)
       .map((segment) => {
-        const match = segment.match(/\{[^}]+\}/);
-        return {
-          type: match ? "dynamic" : "static",
-          value: segment,
-          to_replace: match ? match[0] : "",
-          name: match ? match[0].replace("{", "").replace("}", "") : "",
-        };
+        const match = segment.match(/\{([^}]+)\}/);
+        if (match) {
+          return {
+            type: "dynamic",
+            value: segment,
+            token: match[0],
+            name: match[1],
+          };
+        }
+        return { type: "static", value: segment };
       });
-    return tokens;
   }
 
   resolvePath(tokens, language) {
@@ -323,11 +277,13 @@ export class Project {
       .map((token) => {
         if (token.type === "dynamic") {
           if (token.name === "lang")
-            return token.value.replace(token.to_replace, language.code);
+            return token.value.replace(token.token, language.code);
           if (token.name === "culture")
-            return token.value.replace(token.to_replace, language.culture);
-          // Handle other tokens (e.g., {page}) if needed
-          throw new Error(`Unknown token: ${token.name}`);
+            return token.value.replace(
+              token.token,
+              language.culture || language.code
+            );
+          throw new Error(`Unknown template token: {${token.name}}`);
         }
         return token.value;
       })
@@ -335,33 +291,39 @@ export class Project {
   }
 
   async saveFiles() {
+    if (!this.structure) {
+      console.warn("No structure defined. Skipping file save.");
+      return;
+    }
+
     const tokens = this.parseTemplate(this.structure);
-    await new Promise((resolve) => {
-      let index = 0;
-      this.selectedLanguages.forEach(async (lang) => {
-        index++;
-        if (index >= this.selectedLanguages.length) resolve();
-        const last_part_path = this.resolvePath(tokens, lang);
-        const path = await window.electronAPI.pathJoin(
+
+    await Promise.all(
+      this.languages.map(async (lang) => {
+        const resolvedPath = this.resolvePath(tokens, lang);
+        const fullPath = await window.electronAPI.pathJoin(
           this.folder,
-          last_part_path
+          resolvedPath
         );
-        const translation = this.translation[lang.code];
-        let obj = {};
-        await new Promise(async (res) => {
-          let i = 0;
-          for (const item of translation.data) {
-            obj[item.key] = item.value;
-            i++;
-            if (i >= translation.data.length) res();
-          }
-        });
-        let content = obj;
-        if (this.objectStructureType === "nested") {
-          content = new FlatObjectToNestedObject(obj).unflatten().value;
-        }
-        ioService.saveFileWithFullPath(path, JSON.stringify(content));
-      });
-    });
+        const langData = this.translation[lang.code]?.data || [];
+
+        // Build flat object
+        const flatObj = langData.reduce((acc, item) => {
+          acc[item.key] = String(item.value);
+          return acc;
+        }, {});
+
+        // Optionally nest it
+        const content =
+          this.objectStructureType === "nested"
+            ? new PipeFlatObjectToNestedObject(flatObj).unflatten().value
+            : flatObj;
+
+        await ioService.saveFileWithFullPath(
+          fullPath,
+          JSON.stringify(content, null, 2)
+        );
+      })
+    );
   }
 }

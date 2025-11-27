@@ -1,9 +1,10 @@
 import { useState } from "react";
 import "./App.css";
-import SplashScreen from "./components/Splash";
-import ProjectDashboard from "./components/ProjectDashboard";
 import { ProjectProvider } from "./providers/project.provider";
 import { I18nProvider } from "./providers/i18n.provider";
+import Dashboard from "./components/dashboard/dahsboard";
+import { ViewProvider } from "./providers/view.provider";
+import SplashScreen from "./components/Splash";
 
 function App() {
   const [currentView, setCurrentView] = useState("splash");
@@ -25,7 +26,9 @@ function App() {
   return (
     <I18nProvider>
       <ProjectProvider>
-        <ProjectDashboard />
+        <ViewProvider>
+          <Dashboard />
+        </ViewProvider>
       </ProjectProvider>
     </I18nProvider>
   );

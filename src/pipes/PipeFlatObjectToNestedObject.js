@@ -1,6 +1,6 @@
-export default class FlatObjectToNestedObject {
+export default class PipeFlatObjectToNestedObject {
   constructor(obj) {
-    if (!obj) throw Error("FlatObjectToNestedObject: no object was provided");
+    if (!obj) throw Error("PipeFlatObjectToNestedObject: no object was provided");
     this.obj = obj;
     this.value = undefined;
   }
@@ -28,7 +28,7 @@ export default class FlatObjectToNestedObject {
         this.obj[key] !== null &&
         !Array.isArray(this.obj[key])
       ) {
-        Object.assign(this.value, flatten(this.obj[key], fullKey));
+        Object.assign(this.value, this.flatten(this.obj[key], fullKey));
       } else {
         this.value[fullKey] = this.obj[key];
       }

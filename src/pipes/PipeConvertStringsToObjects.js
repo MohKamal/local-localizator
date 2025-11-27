@@ -1,5 +1,5 @@
 import isFlatObject from "../utils/IsFlatObject";
-import FlatObjectToNestedObject from "./FlatObjectToNestedObject";
+import PipeFlatObjectToNestedObject from "./PipeFlatObjectToNestedObject";
 
 export class PipeConvertStringsToObjects {
   constructor(obj) {
@@ -11,7 +11,7 @@ export class PipeConvertStringsToObjects {
 
   convert() {
     if (this.obj === null || typeof this.obj !== "object") {
-      return obj; // Return primitives as-is (though shouldn't happen in normal usage)
+      return this.obj;
     }
 
     this.value = Array.isArray(this.obj) ? [] : {};
@@ -20,18 +20,18 @@ export class PipeConvertStringsToObjects {
       let flatenObjects = [];
       this.obj.forEach((o) => {
         if (!isFlatObject(o))
-          flatenObjects.push(new FlatObjectToNestedObject(o).flatten().value);
+          flatenObjects.push(new PipeFlatObjectToNestedObject(o).flatten().value);
         else flatenObjects.push(o);
       });
 
       this.obj = flatenObjects;
     } else {
       if (!isFlatObject(this.obj))
-        this.obj = new FlatObjectToNestedObject(this.obj).flatten().value;
+        this.obj = new PipeFlatObjectToNestedObject(this.obj).flatten().value;
     }
 
     for (const key in this.obj) {
-      if (!this.obj.hasOwnProperty(key)) continue;
+      if (!this.obj.hasOwn(key)) continue;
 
       const value = this.obj[key];
 
