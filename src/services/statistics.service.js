@@ -1,60 +1,76 @@
 class StatisticsService {
-  constructor() {}
+  /**
+   * Checks if a translation value is empty.
+   * @param {*} value - The value to check.
+   * @returns {boolean}
+   */
+  _isEmpty(value) {
+    return value === null || value === undefined || value === "";
+  }
 
-  async get(project) {}
-
+  /**
+   * Gets the total number of translation keys (from base language).
+   * @param {Project} project
+   * @returns {number}
+   */
   getKeyCount(project) {
-    return project.getDefaultTranslation().data.length;
+    const baseTranslation = project.getDefaultTranslation();
+    return baseTranslation ? baseTranslation.data.length : 0;
   }
 
+  /**
+   * Gets the total number of translation slots (keys × languages).
+   * @param {Project} project
+   * @returns {number}
+   */
   getSlotsCount(project) {
-    return this.getKeyCount(project) * project.selectedLanguages.length;
+    return this.getKeyCount(project) * project.languages.length;
   }
 
-  async getTranslatedProgess(project) {
-    const empty = await this.getEmptySlotsCount(project);
+  /**
+   * Calculates and returns the translation progress percentage.
+   * Also updates `project.progress` and `project.status`.
+   * @param {Project} project
+   * @returns {number} Progress percentage (0–100)
+   */
+  async getTranslatedProgress(project) {
+    const emptyCount = await this.getEmptySlotsCount(project);
     const totalSlots = this.getSlotsCount(project);
-    const filledSlots = totalSlots - empty;
-    project.setProgress(Math.floor((filledSlots / totalSlots) * 100));
-    return project.progress;
+    const progress =
+      totalSlots > 0
+        ? Math.floor(((totalSlots - emptyCount) / totalSlots) * 100)
+        : 100;
+
+    return progress;
   }
 
-  async getEmptySlots(project) {
-    function isEmpty(value) {
-      return value === null || value === undefined || value === "";
+  /**
+   * Returns an object mapping language codes to number of empty slots.
+   * @param {Project} project
+   * @returns {Object.<string, number>}
+   */
+  getEmptySlots(project) {
+    const result = {};
+    for (const langCode in project.translation) {
+      const langData = project.translation[langCode]?.data || [];
+      result[langCode] = langData.filter((item) =>
+        this._isEmpty(item.value)
+      ).length;
     }
-    let result = {};
-    await new Promise(async (resolve) => {
-      let index = 0;
-      for (const key in project.translation) {
-        result[key] = project.translation[key].data.filter(
-          (x) => isEmpty(x.value) == true
-        ).length;
-        index++;
-        if (index >= Object.keys(project.translation).length) resolve();
-      }
-    });
-
     return result;
   }
 
-  async getEmptySlotsCount(project) {
-    const emptySlots = await this.getEmptySlots(project);
-    let result = 0;
-    await new Promise((resolve) => {
-      let index = 0;
-      const length = Object.keys(emptySlots).length;
-      if (length == 0) resolve();
-      for (const key in emptySlots) {
-        result += emptySlots[key];
-        index++;
-        if (index >= length) resolve();
-      }
-    });
-    return result;
+  /**
+   * Returns the total number of empty translation slots across all languages.
+   * @param {Project} project
+   * @returns {number}
+   */
+  getEmptySlotsCount(project) {
+    const emptySlots = this.getEmptySlots(project);
+    return Object.values(emptySlots).reduce((sum, count) => sum + count, 0);
   }
 }
 
+// Singleton export
 const statisticsService = new StatisticsService();
-
 export default statisticsService;

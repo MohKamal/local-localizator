@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { Globe, X } from "lucide-react";
-import { useProject } from "../providers/project.provider";
+import { useProject } from "../../../providers/project.provider";
 
 const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
-  if (!isOpen) return null;
 
-  const { selectedProject, setSelectedProject } = useProject();
-  const [id, setId] = useState(initialData?.id || "");
+  const { selectedProject } = useProject();
+  const [id] = useState(initialData?.id || "");
   const [key, setKey] = useState(initialData?.key || "");
   const [newKey, setNewKey] = useState(initialData?.key || "");
   const [description, setDescription] = useState(
@@ -23,7 +22,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
     }
 
     const loaded = {};
-    selectedProject.selectedLanguages.forEach((lang) => {
+    selectedProject.languages.forEach((lang) => {
       const langData = selectedProject.translation[lang.code]?.data || [];
       const entry = langData.find((item) => item.key === key);
       loaded[lang.code] = entry?.value || "";
@@ -72,6 +71,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
     }));
   };
 
+  if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -155,14 +155,14 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
           </div>
 
           {/* Translation Inputs */}
-          {selectedProject.selectedLanguages.length > 0 && (
+          {selectedProject.languages.length > 0 && (
             <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-6">
                 Enter Translations
               </h2>
 
               <div className="space-y-4">
-                {selectedProject.selectedLanguages.map((language) => (
+                {selectedProject.languages.map((language) => (
                   <div
                     key={language.code}
                     className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg"
@@ -194,7 +194,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
           )}
 
           {/* Empty State */}
-          {selectedProject.selectedLanguages.length === 0 && (
+          {selectedProject.languages.length === 0 && (
             <div className="p-12 text-center">
               <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Globe className="w-8 h-8 text-indigo-600" />

@@ -1,1 +1,22 @@
-{"hello":"Hello World, it's Local Localizator!","dashboard.title":"Vos Projets","dashboard.slogan":"Gérez et suivez tous vos projets au même endroit.","button.new.project":"Nouveau Projet","button.import.project":"Importer un projet","dashboard.no.project":"Aucun projet pour l'instant","dashboard.no.project.slogan":"Commencez par créer votre premier projet.","dashboard.create.project.button":"Créer un nouveau projet","dashboard.project_card.translated":"Traduit","dashboard.project_card.keys":"Clés","dashboard.project_card.last_modified":"Dernière modification","dashboard.project_card.view_project_button":"Voir le projet","project_details.button.save":"Sauvegarder","project_details.button.edit":"Modifier","project_details.title.project_details":"Détails du projet","project_details.title.languages":"Langues","project_details.title.missing_slots":"Emplacements manquants","project_details.title.progress":"Aperçu des progrès","project_details.title.completion":"Achèvement","project_details.title.recent_activity":"Activité récente","project_details.title.project_created":"Projet créé","project_details.title.last_edited_key":"Dernière clé modifiée","project_details.title.missing_translations":"Traductions manquantes"}
+{
+  "": "Vos Projets",
+  "dashboard.slogan": "Organisez vos traductions, suivez leur progression et ne manquez jamais une clée",
+  "dashboard.project_card.translated": "Traduit",
+  "dashboard.project_card.keys": "Clées",
+  "dashboard.project_card.last_modified": "Dernière modification",
+  "dashboard.project_card.view_project_button": "Voir",
+  "project_details.button.save": "Sauvegarder",
+  "project_details.button.edit": "Modifier",
+  "project_details.title.project_details": "Détails du projet",
+  "project_details.title.languages": "Langues",
+  "project_details.title.totat_keys": "Clés totales",
+  "project_details.title.missing_slots": "Emplacements manquants",
+  "project_details.title.recent_activity": "Activité récente",
+  "project_details.title.project_created": "Projet créé",
+  "project_details.title.last_edited_key": "Dernière Clée modifiée",
+  "project_details.title.missing_translations": "Traductions manquantes",
+  "project_details.title.progress": "État d'avancement de la traduction",
+  "project_details.title.completion": "Achèvement",
+  "button.import.project": "Importer",
+  "button.new.project": "Nouveau projet"
+}

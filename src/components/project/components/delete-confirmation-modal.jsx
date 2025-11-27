@@ -1,14 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 
 const DeleteConfirmation = ({ isOpen, onCancel, onDelete }) => {
-  if (!isOpen) return null;
   const [confirmationText, setConfirmationText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const handleDelete = async () => {
     if (confirmationText.toLowerCase() === "delete") {
       setIsDeleting(true);
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500));
       setIsDeleting(false);
       setConfirmationText("");
@@ -20,6 +18,7 @@ const DeleteConfirmation = ({ isOpen, onCancel, onDelete }) => {
     onCancel();
     setConfirmationText("");
   };
+  if (!isOpen) return null;
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"

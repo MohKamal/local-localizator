@@ -2,9 +2,9 @@
 
 > **Simplify localization. Zero config. Pure productivity.**
 
-Translato is a sleek, desktop-first translation management tool built with **React 19** and **Electron**. It empowers developers to create, edit, organize, and monitor multilingual translation files without wrestling with configuration, CLI tools, or spreadsheets.
+Local Localizator is a sleek, desktop-first translation management tool built with **React 19** and **Electron**. It empowers developers to create, edit, organize, and monitor multilingual translation files without wrestling with configuration, CLI tools, or spreadsheets.
 
-Whether you're working on a personal project or a team-based application, Translato gives you full control over your i18n workflow—in one intuitive interface.
+Whether you're working on a personal project or a team-based application, Local Localizator gives you full control over your i18n workflow—in one intuitive interface.
 
 ---
 
@@ -92,7 +92,7 @@ Local Localizator is **100% offline**. It never sends your code, translations, o
 
 ## 🧪 Roadmap (Upcoming)
 
-- [ ] Import/export CSV/XLIFF for external translators  
+- [ ] Import/export CSV/XLIFF for external Local Localizatorrs  
 - [ ] Find & replace across languages  
 - [ ] Duplicate key detection  
 - [ ] Collaboration mode (local network sync)  

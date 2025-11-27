@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from 'react';
 import {
   Plus,
   Edit,
@@ -9,10 +9,10 @@ import {
   Search,
   Tag,
   X,
-} from "lucide-react";
-import EditModal from "./EditModal";
-import ConfirmationModal from "./ConfirmationModal";
-import { useProject } from "../providers/project.provider";
+} from 'lucide-react';
+import EditModal from './edit-modal';
+import ConfirmationModal from './confirmation-modal';
+import { useProject } from '../../../providers/project.provider';
 
 const TranslationTable = () => {
   const { selectedProject, setSelectedProject } = useProject();
@@ -24,9 +24,12 @@ const TranslationTable = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [creatingNew, setCreatingNew] = useState(false);
-  const [rerender, setRerender] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedTags, setSelectedTags] = useState(new Set());
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const toggleRowSelection = (id) => {
     const newSelected = new Set(selectedRows);
     if (newSelected.has(id)) {
@@ -47,7 +50,7 @@ const TranslationTable = () => {
 
   const handleDelete = async () => {
     const newRows = data.filter((item) => !selectedRows.has(item.id));
-    await selectedProject.deleteKeyBySet(
+    await selectedProject.deleteKeyBySetOfKeys(
       new Set(data.filter((t) => selectedRows.has(t.id)).map((c) => c.key))
     );
     setData(newRows);
@@ -126,9 +129,61 @@ const TranslationTable = () => {
   };
 
   const clearAllFilters = () => {
-    setSearchTerm("");
+    setSearchTerm('');
     setSelectedTags(new Set());
   };
+
+  // Pagination logic using useMemo
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    return filteredItems.slice(startIndex, startIndex + rowsPerPage);
+  }, [filteredItems, currentPage, rowsPerPage]);
+
+  const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Handle rows per page change
+  const handleRowsPerPageChange = (event) => {
+    const newRowsPerPage = parseInt(event.target.value);
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1); // Reset to first page when changing rows per page
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    range.push(1);
+    for (let i = currentPage - delta; i <= currentPage + delta; i++) {
+      if (i < totalPages && i > 1) {
+        range.push(i);
+      }
+    }
+    range.push(totalPages);
+
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
+
+  const removeTag = (tag) => {};
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -156,32 +211,26 @@ const TranslationTable = () => {
           <div className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             <span>
-              {selectedProject.selectedLanguages.length} language
-              {selectedProject.selectedLanguages.length !== 1 ? "s" : ""}{" "}
-              selected
+              {selectedProject.languages.length} language
+              {selectedProject.languages.length !== 1 ? 's' : ''} selected
             </span>
           </div>
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
             <span>
-              {selectedProject.selectedLanguages.map((f) => f.name).join(", ")}
+              {selectedProject.languages.map((f) => f.name).join(', ')}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             <span>
-              Last modified:{" "}
-              {selectedProject.getLastModifiedAsString() || "N/A"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span>
-              Showing {filteredItems.length} of {data.length} results
+              Last modified:{' '}
+              {selectedProject.getLastModifiedAsString() || 'N/A'}
             </span>
           </div>
         </div>
 
-        <div className="items-center gap-6 text-sm text-gray-600">
+        <div className="items-center gap-6 text-sm text-gray-600 mb-6">
           {/* Top Bar with Search and Tag Filtering */}
           <div className="bg-white">
             <div className="flex flex-col lg:flex-row gap-4">
@@ -233,28 +282,56 @@ const TranslationTable = () => {
             )}
 
             {/* Tag Filter Options */}
-            <div className="mt-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Tag className="h-4 w-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">
-                  Filter by tags:
-                </span>
+            {allTags.length > 0 && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Tag className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700">
+                    Filter by tags:
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {allTags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      className={`px-3 py-1 text-sm rounded-full transition-all duration-200 ${
+                        selectedTags.has(tag)
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {allTags.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => toggleTag(tag)}
-                    className={`px-3 py-1 text-sm rounded-full transition-all duration-200 ${
-                      selectedTags.has(tag)
-                        ? "bg-blue-600 text-white shadow-md"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
+            )}
+          </div>
+        </div>
+        {/* Pagination Options */}
+        <div className="items-center gap-6 text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700">
+                Rows per page:
+              </span>
+              <select
+                value={rowsPerPage}
+                onChange={handleRowsPerPageChange}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+
+            <div className="text-sm text-gray-600">
+              Showing {(currentPage - 1) * rowsPerPage + 1} to{' '}
+              {Math.min(currentPage * rowsPerPage, filteredItems.length)} of{' '}
+              {data.length} keys
             </div>
           </div>
         </div>
@@ -293,61 +370,115 @@ const TranslationTable = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedRows.has(item.id)}
-                        onChange={() => toggleRowSelection(item.id)}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">
-                        {item.key}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {item.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                {(paginatedItems.length > 0 && data.length) > 0 &&
+                  paginatedItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedRows.has(item.id)}
+                          onChange={() => toggleRowSelection(item.id)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-900">
+                          {item.key}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {item.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
+                        {item.description}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit"
                           >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
-                      {item.description}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedRows(new Set([item.id]));
-                            setShowDeleteModal(true);
-                          }}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedRows(new Set([item.id]));
+                              setShowDeleteModal(true);
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-6">
+                <nav
+                  className="inline-flex rounded-md shadow-sm"
+                  aria-label="Pagination"
+                >
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`relative inline-flex items-center px-3 py-2 rounded-l-md text-sm font-medium ${
+                      currentPage === 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    } border border-gray-300`}
+                  >
+                    Previous
+                  </button>
+
+                  {getPageNumbers().map((page, index) => (
+                    <React.Fragment key={index}>
+                      {page === '...' ? (
+                        <span className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300">
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handlePageChange(page)}
+                          className={`relative inline-flex items-center px-3 py-2 text-sm font-medium ${
+                            currentPage === page
+                              ? 'bg-blue-600 text-white z-10'
+                              : 'bg-white text-gray-700 hover:bg-gray-50'
+                          } border border-gray-300`}
+                        >
+                          {page}
+                        </button>
+                      )}
+                    </React.Fragment>
+                  ))}
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`relative inline-flex items-center px-3 py-2 rounded-r-md text-sm font-medium ${
+                      currentPage === totalPages
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    } border border-gray-300`}
+                  >
+                    Next
+                  </button>
+                </nav>
+              </div>
+            )}
           </div>
 
           {data.length === 0 && (
@@ -366,7 +497,7 @@ const TranslationTable = () => {
         {selectedRows.size > 0 && (
           <div className="mt-4 flex justify-between items-center">
             <div className="text-sm text-gray-600">
-              {selectedRows.size} item{selectedRows.size !== 1 ? "s" : ""}{" "}
+              {selectedRows.size} item{selectedRows.size !== 1 ? 's' : ''}{' '}
               selected
             </div>
             <button
@@ -396,7 +527,7 @@ const TranslationTable = () => {
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
         message={`Are you sure you want to delete ${selectedRows.size} item${
-          selectedRows.size !== 1 ? "s" : ""
+          selectedRows.size !== 1 ? 's' : ''
         }?`}
       />
     </div>

@@ -25,6 +25,12 @@ import { join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const configPath = path.join(__dirname, "../app.config.json");
+const configRaw = readFileSync(configPath, "utf8");
+const config = JSON.parse(configRaw);
+
+const isDevelopment = config.environment === "development";
+
 // Security constants – keep these secret!
 const ALGORITHM = "aes-256-gcm";
 const SALT = "your-unique-salt-123!"; // Should be fixed
@@ -57,10 +63,9 @@ function createWindow() {
     },
   });
 
-  // win.webContents.openDevTools();
-
-  if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
+  if (isDevelopment) {
     win.loadURL("http://localhost:5173");
+    win.webContents.openDevTools();
   } else {
     win.loadFile(path.join(__dirname, "../dist/index.html"));
   }
