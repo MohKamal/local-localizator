@@ -112,7 +112,7 @@ Contributions are welcome! Whether it’s a bug fix, UX improvement, or new feat
 5. Open a Pull Request
 
 Please read our [Contributing Guide](CONTRIBUTING.md) for details.
-Please read our [Documentation Guide](DOCUMENTATION.md) for documentation.
+Please read our [Documentation Guide](documentation.md) for documentation.
 
 ---
 
