@@ -13,7 +13,7 @@ const FileSelection = ({ projects, setProjects }) => {
   const [selectedLanguages, setSelectedLanguages] = useState({});
   const [showDropdowns, setShowDropdowns] = useState({});
   const [files, setFiles] = useState([]);
-  const [baseFileId, setBaseFileId] = useState(1); // Default base file
+  const [baseFileId, setBaseFileId] = useState(0); // Default base file
 
   const getFileNameFromPath = (filePath) => {
     return filePath.split('/').pop().split('\\').pop();
@@ -54,37 +54,39 @@ const FileSelection = ({ projects, setProjects }) => {
     if (files_obj.length > 0) return;
     const _files = [];
     let isBase = false;
-    files_obj.filePaths.forEach(async (path, index) => {
-      const ext = getFileExtension(path);
-      const code = hasLanguageCode(getFileNameFromPath(path));
-      if (['json', 'prj'].includes(ext)) {
-        if (ext === 'prj') {
-          const p = await loadProject(path);
-          if (p) {
-            if (files_obj.filePaths.length === 1) {
-              setSelectedProject(p);
-              setCurrentView('project-details');
-            }
-          }
-        } else {
-          let base = false;
-          if (!isBase) {
-            base = true;
-            isBase = true;
-          }
-          _files.push({
-            id: index,
-            path: path,
-            name: getFileNameFromPath(path),
-            code: code,
-            base: base,
-          });
-          if (code) {
-            handleLanguageSelect(index, code);
+    files_obj.filePaths
+      .filter((path) => ['json'].includes(getFileExtension(path)))
+      .forEach(async (path, index) => {
+        const code = hasLanguageCode(getFileNameFromPath(path));
+        let base = false;
+        if (!isBase) {
+          base = true;
+          isBase = true;
+          setBaseFileId(index);
+        }
+        _files.push({
+          id: index,
+          path: path,
+          name: getFileNameFromPath(path),
+          code: code,
+          base: base,
+        });
+        if (code) {
+          handleLanguageSelect(index, code);
+        }
+      });
+
+    files_obj.filePaths
+      .filter((path) => ['prj'].includes(getFileExtension(path)))
+      .forEach(async (path) => {
+        const p = await loadProject(path);
+        if (p) {
+          if (files_obj.filePaths.length === 1) {
+            setSelectedProject(p);
+            setCurrentView('project-details');
           }
         }
-      }
-    });
+      });
     setFiles(_files);
     setIsFilesVisible(true);
   };

@@ -1,5 +1,5 @@
 {
-  "": "Your Projects",
+  "dashboard.title": "Your Projects",
   "dashboard.slogan": "Organize translations, monitor progress, and never miss a key.",
   "dashboard.project_card.translated": "Translated",
   "dashboard.project_card.keys": "Keys",

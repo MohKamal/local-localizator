@@ -84,6 +84,24 @@ The packaged app will be available in the `out/` directory for your OS.
 
 ---
 
+## 📥 Importing Projects & Translation Files
+
+Local Localizator makes it easy to bring existing translation work into the app—whether you're collaborating with a team or starting from pre-built JSON files.
+
+You can **import a full project** if it follows Local Localizator’s internal structure (e.g., exported by another user), or **create a new project from raw translation files** (like `en.json`, `fr.json`, etc.).
+
+To get started:
+1. Click **“Import** on the dashboard.
+2. Select one or more JSON files from your file system.
+3. The app will **auto-detect languages** based on filenames (e.g., `es.json` → Spanish).
+4. Review the detected languages, and **choose a base language** by clicking the star icon ⭐.
+5. Once a base language is set, the **“Validate & Create”** button becomes active.
+6. Click it to generate a new project with a temporary name—you’ll be taken directly to the project editor to finalize details (name, keys, etc.).
+
+All imported or created projects appear instantly in your dashboard, ready for editing, validation, and translation completeness tracking.
+
+---
+
 ## 🔒 Privacy & Security
 
 Local Localizator is **100% offline**. It never sends your code, translations, or project structure to any external server. All data stays on your machine.
