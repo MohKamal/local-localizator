@@ -1,4 +1,6 @@
-import { Project } from "../models/project";
+import { Project } from '../models/project';
+import { PipeConvertStringsToObjects } from '../pipes/PipeConvertStringsToObjects';
+import predefinedLanguages from '../utils/languages';
 
 class ProjectService {
   /**
@@ -8,7 +10,7 @@ class ProjectService {
    */
   async save(project) {
     if (!(project instanceof Project)) {
-      console.error("Invalid project instance");
+      console.error('Invalid project instance');
       return;
     }
     const data = JSON.stringify(project, null, 2); // Pretty-print for debugging
@@ -58,7 +60,7 @@ class ProjectService {
    */
   async delete(project) {
     if (!project?.getFilename) {
-      console.log("Invalid project object");
+      console.log('Invalid project object');
       return;
     }
     await window.electronAPI.deleteProject(project.getFilename());
@@ -71,7 +73,7 @@ class ProjectService {
   async scan() {
     try {
       const items = await window.electronAPI.scanProject();
-      const files = items.filter((item) => item.type === "file");
+      const files = items.filter((item) => item.type === 'file');
 
       if (files.length === 0) return [];
 
@@ -82,13 +84,13 @@ class ProjectService {
       // Filter out failed loads (e.g., corrupted files)
       const validProjects = projects
         .filter((result) => result && result.value)
-        .filter((result) => result.status === "fulfilled")
+        .filter((result) => result.status === 'fulfilled')
         .map((result) => result.value);
 
       // Optional: Log errors for failed loads
       projects
         .filter((result) => result && result.value)
-        .filter((result) => result.status === "rejected")
+        .filter((result) => result.status === 'rejected')
         .forEach((result, i) => {
           console.warn(
             `Failed to load project ${files[i].path}:`,
@@ -98,9 +100,134 @@ class ProjectService {
 
       return validProjects;
     } catch (error) {
-      console.error("Project scan failed:", error);
+      console.error('Project scan failed:', error);
       return [];
     }
+  }
+
+  /**
+   * Synchronizes translation keys across multiple language objects.
+   *
+   * @param {Array<{language_code: string, data: Object}>} langList - List of language objects
+   * @param {string|function} [fallback='[MISSING]'] - Fallback value or function(key) => value
+   * @returns {Array<{language_code: string, data: Object}>} - Updated list with synchronized keys
+   */
+  synchronizeTranslationKeys(langList, fallback = '') {
+    // Collect all unique keys from all language data objects
+    const allKeys = new Set();
+    langList.forEach(({ data }) => {
+      Object.keys(data).forEach((key) => allKeys.add(key));
+    });
+
+    // Optionally sort keys for consistent ordering (helps with diffs)
+    const sortedKeys = Array.from(allKeys).sort();
+
+    // Build fallback resolver
+    const getFallback =
+      typeof fallback === 'function' ? fallback : () => fallback;
+
+    // Return new list with synchronized data
+    return langList.map(({ language_code, data, base }) => {
+      const syncedData = {};
+      sortedKeys.forEach((key) => {
+        syncedData[key] = data.hasOwnProperty(key)
+          ? data[key]
+          : getFallback(key);
+      });
+      return { language_code, data: syncedData, base };
+    });
+  }
+
+  getDirectoryFromPath(fullPath) {
+    // Handle both forward slashes (/) and backslashes (\)
+    const normalizedPath = fullPath.replace(/\\/g, '/');
+    const lastSlashIndex = normalizedPath.lastIndexOf('/');
+
+    if (lastSlashIndex === -1) {
+      return ''; // No directory separator found
+    }
+
+    return normalizedPath.substring(0, lastSlashIndex);
+  }
+
+  async createProjectFromTranslationFiles(files_data = []) {
+    if (files_data.length === 0) return undefined;
+
+    // Read all files concurrently
+    const filePromises = files_data.map(async (file_data) => {
+      const content = await window.electronAPI.readFile(file_data.path);
+      if (!content) return null;
+
+      return {
+        data: JSON.parse(content),
+        language_code: file_data.code,
+        base: file_data.base,
+        folder: this.getDirectoryFromPath(file_data.path),
+      };
+    });
+
+    const results = (await Promise.all(filePromises)).filter(Boolean); // Remove nulls
+    if (results.length === 0) return undefined;
+
+    // Use folder from first file (or compute common ancestor if needed)
+    const folder = results[0].folder;
+
+    // Synchronize translations
+    const translate = this.synchronizeTranslationKeys(results);
+
+    const languages = [];
+    const translation = {};
+
+    for (const tr of translate) {
+      const lang = predefinedLanguages.find((x) => x.code === tr.language_code);
+      if (!lang) continue; // Skip unsupported languages
+
+      languages.push(lang);
+
+      translation[tr.language_code] = {
+        language: lang,
+        data: new PipeConvertStringsToObjects(tr.data)
+          .convert()
+          .value.getAllEntries(),
+      };
+    }
+
+    return new Project({
+      name: `[From Files] ${this.generateRandomName()}`,
+      type: 'react',
+      languages,
+      translation,
+      initialize: true,
+      folder,
+    });
+  }
+
+  generateRandomName() {
+    const adjectives = [
+      'Mighty',
+      'Clever',
+      'Silent',
+      'Brave',
+      'Golden',
+      'Swift',
+      'Hidden',
+      'Lucky',
+    ];
+    const nouns = [
+      'Tiger',
+      'Rocket',
+      'Comet',
+      'Phoenix',
+      'Shadow',
+      'Echo',
+      'Star',
+      'Ninja',
+    ];
+
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+
+    return `${adj}${noun}`;
   }
 }
 

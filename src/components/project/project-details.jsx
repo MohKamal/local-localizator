@@ -93,7 +93,7 @@ const ProjectDetails = ({ handleEdit }) => {
 
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2 truncate max-w-[70%]">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
             {selectedProject.name}
           </h2>
           <p className="text-gray-600 text-lg line-clamp-2">

@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import NewProjectModal from "../project/new-project-modal";
-import { useProject } from "../../providers/project.provider";
-import { useI18n } from "../../providers/i18n.provider";
-import { useView } from "../../providers/view.provider";
-import projectService from "../../services/project.service";
-import ProjectDetails from "../project/project-details";
-import DashboardMain from "./components/dashboard-main";
-import TopNav from "./components/top-nav";
-import FileSelection from "../file-selection";
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import NewProjectModal from '../project/new-project-modal';
+import { useProject } from '../../providers/project.provider';
+import { useI18n } from '../../providers/i18n.provider';
+import { useView } from '../../providers/view.provider';
+import projectService from '../../services/project.service';
+import ProjectDetails from '../project/project-details';
+import DashboardMain from './components/dashboard-main';
+import TopNav from './components/top-nav';
+import FileSelection from './../import/file-selection';
 
 const Dashboard = () => {
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
@@ -24,7 +24,7 @@ const Dashboard = () => {
       const _projects = await projectService.scan();
       setProjects(_projects);
     } catch (err) {
-      console.error("Failed to scan folder:", err);
+      console.error('Failed to scan folder:', err);
     }
   }, []);
 
@@ -46,7 +46,7 @@ const Dashboard = () => {
             ? {
                 ...p,
                 ...project,
-                ...(project.type !== "custom" && {
+                ...(project.type !== 'custom' && {
                   structure: projectService.setStructureFromType(project.type),
                 }),
               }
@@ -63,7 +63,7 @@ const Dashboard = () => {
         const newProjects = [...projects, project];
         setProjects(newProjects);
         setSelectedProject(project);
-        setCurrentView("project-details");
+        setCurrentView('project-details');
       }
       setShowNewProjectModal(false);
     },
@@ -73,14 +73,10 @@ const Dashboard = () => {
   const handleLoad = useCallback(
     (project) => {
       setSelectedProject(project);
-      setCurrentView("project-details");
+      setCurrentView('project-details');
     },
     [setSelectedProject, setCurrentView]
   );
-
-  const handleFileImport = useCallback(() => {
-    setCurrentView("project-details");
-  }, [setCurrentView]);
 
   const handleEdit = useCallback((project) => {
     setEditingProject(project);
@@ -96,7 +92,7 @@ const Dashboard = () => {
       await projectService.delete(projectToDelete);
       setProjects((prev) => prev.filter((p) => p.id !== id));
       setShowNewProjectModal(false);
-      setCurrentView("dashboard");
+      setCurrentView('dashboard');
     },
     [projects, setCurrentView]
   );
@@ -121,17 +117,17 @@ const Dashboard = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AnimatePresence mode="wait">
-          {currentView === "dashboard" && (
+          {currentView === 'dashboard' && (
             <DashboardMain
               handleLoad={handleLoad}
               projects={projects}
               handleCreateNew={handleCreateNew}
             />
           )}
-          {currentView === "project-details" && (
+          {currentView === 'project-details' && (
             <ProjectDetails handleEdit={handleEdit} />
           )}
-          {currentView === "import" && (
+          {currentView === 'import' && (
             <motion.div
               key="import"
               initial={{ opacity: 0, y: 20 }}
@@ -140,7 +136,7 @@ const Dashboard = () => {
               transition={{ duration: 0.3 }}
               className="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
             >
-              <FileSelection onFilesSelected={handleFileImport} />
+              <FileSelection projects={projects} setProjects={setProjects} />
             </motion.div>
           )}
         </AnimatePresence>

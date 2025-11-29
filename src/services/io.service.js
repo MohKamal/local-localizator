@@ -5,6 +5,10 @@ class IOService {
       content,
     });
   }
+
+  async openFileDialog() {
+    return await window.electronAPI.openFile();
+  }
 }
 
 const ioService = new IOService();
