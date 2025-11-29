@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   X,
   Folder,
@@ -38,6 +38,33 @@ const NewProjectModal = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (initialData?.name !== undefined) setProjectName(initialData.name);
+    else setProjectName('');
+
+    if (initialData?.type !== undefined) setProjectType(initialData.type);
+    else setProjectType('react');
+
+    if (initialData?.structure !== undefined)
+      setStructure(initialData.structure);
+    else setStructure('');
+
+    if (initialData?.folder !== undefined) setProjectFolder(initialData.folder);
+    else setProjectFolder('');
+
+    if (initialData?.description !== undefined)
+      setDescription(initialData.description);
+    else setDescription('');
+
+    if (initialData?.languages !== undefined)
+      setLanguages(initialData.languages);
+    else setLanguages([]);
+
+    if (initialData?.objectStructureType !== undefined)
+      setObjectStructureType(initialData.objectStructureType);
+    else setObjectStructureType('flated');
+  }, [initialData]);
 
   const isValidFolderPathSyntax = useCallback((input) => {
     if (typeof input !== 'string' || !input.trim()) return false;
@@ -221,8 +248,8 @@ const NewProjectModal = ({
       initialize: false,
     });
 
-    onClose();
     await onSave(project);
+    onClose();
   }, [
     projectName,
     projectFolder,

@@ -1,19 +1,38 @@
-import { useState, useEffect } from "react";
-import { Globe, X } from "lucide-react";
-import { useProject } from "../../../providers/project.provider";
+import { useState, useEffect } from 'react';
+import { Globe, X } from 'lucide-react';
+import { useProject } from '../../../providers/project.provider';
 
 const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
-
   const { selectedProject } = useProject();
-  const [id] = useState(initialData?.id || "");
-  const [key, setKey] = useState(initialData?.key || "");
-  const [newKey, setNewKey] = useState(initialData?.key || "");
+  const [id, setId] = useState(initialData?.id || '');
+  const [key, setKey] = useState(initialData?.key || '');
+  const [newKey, setNewKey] = useState(initialData?.key || '');
   const [description, setDescription] = useState(
-    initialData?.description || ""
+    initialData?.description || ''
   );
   const [tags, setTags] = useState(initialData?.tags || []);
-  const [newTag, setNewTag] = useState("");
+  const [newTag, setNewTag] = useState('');
   const [translations, setTranslations] = useState({});
+
+  useEffect(() => {
+    if (initialData?.id !== undefined) setId(initialData.id);
+    else setId('');
+
+    if (initialData?.key !== undefined) {
+      setKey(initialData.key);
+      setNewKey(initialData.key);
+    } else {
+      setKey('');
+      setNewKey('');
+    }
+
+    if (initialData?.description !== undefined)
+      setDescription(initialData.description);
+    else setDescription('');
+
+    if (initialData?.tags !== undefined) setTags(initialData.tags);
+    else setTags([]);
+  }, [initialData]);
 
   useEffect(() => {
     if (!key) {
@@ -25,24 +44,24 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
     selectedProject.languages.forEach((lang) => {
       const langData = selectedProject.translation[lang.code]?.data || [];
       const entry = langData.find((item) => item.key === key);
-      loaded[lang.code] = entry?.value || "";
+      loaded[lang.code] = entry?.value || '';
     });
     setTranslations(loaded);
   }, [isOpen, key]);
 
   useEffect(() => {
     if (isOpen) {
-      setKey(initialData?.key || "");
-      setDescription(initialData?.description || "");
+      setKey(initialData?.key || '');
+      setDescription(initialData?.description || '');
       setTags(initialData?.tags || []);
-      setNewTag("");
+      setNewTag('');
     }
   }, [isOpen, initialData]);
 
   const handleAddTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
       setTags([...tags, newTag.trim()]);
-      setNewTag("");
+      setNewTag('');
     }
   };
 
@@ -78,7 +97,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-semibold text-gray-800">
-              {initialData ? "Edit Translation" : "Create New Key"}
+              {initialData ? 'Edit Translation' : 'Create New Key'}
             </h3>
             <button
               onClick={onClose}
@@ -125,7 +144,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
+                onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Add tag"
               />
@@ -179,7 +198,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
                     <div className="flex-1">
                       <input
                         type="text"
-                        value={translations[language.code] || ""}
+                        value={translations[language.code] || ''}
                         onChange={(e) =>
                           handleTranslationChange(language.code, e.target.value)
                         }
@@ -220,7 +239,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
             onClick={handleSubmit}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
-            {initialData ? "Update" : "Create"}
+            {initialData ? 'Update' : 'Create'}
           </button>
         </div>
       </div>
