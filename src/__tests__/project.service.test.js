@@ -94,26 +94,25 @@ describe('ProjectService', () => {
 
   test('load and create new project from json files', async () => {
     mockReadFile.mockImplementation((path) => {
-      let data = '';
-      if (path === '/test/en.json') {
-        data = JSON.stringify({
-          hello: 'Your Projects',
-          'dashboard.slogan':
-            'Organize translations, monitor progress, and never miss a key.',
-          'dashboard.project_card.translated': 'Translated',
-          'dashboard.project_card.keys': 'Keys',
-          'dashboard.project_card.last_modified': 'Last modified',
-        });
-      } else {
-        data = JSON.stringify({
-          hello: 'Vos Projets',
-          'dashboard.slogan':
-            'Organisez vos traductions, suivez leur progression et ne manquez jamais une clée',
-          'dashboard.project_card.translated': 'Traduit',
-          'dashboard.project_card.keys': 'Clées',
-          'dashboard.project_card.last_modified': 'Dernière modification',
-        });
-      }
+      const data =
+        path === '/test/en.json'
+          ? JSON.stringify({
+              hello: 'Your Projects',
+              'dashboard.slogan':
+                'Organize translations, monitor progress, and never miss a key.',
+              'dashboard.project_card.translated': 'Translated',
+              'dashboard.project_card.keys': 'Keys',
+              'dashboard.project_card.last_modified': 'Last modified',
+            })
+          : JSON.stringify({
+              hello: 'Vos Projets',
+              'dashboard.slogan':
+                'Organisez vos traductions, suivez leur progression et ne manquez jamais une clée',
+              'dashboard.project_card.translated': 'Traduit',
+              'dashboard.project_card.keys': 'Clées',
+              'dashboard.project_card.last_modified': 'Dernière modification',
+            });
+
       return Promise.resolve(data);
     });
 
@@ -139,23 +138,22 @@ describe('ProjectService', () => {
 
   test('load and create new project from json files with different keys', async () => {
     mockReadFile.mockImplementation((path) => {
-      let data = '';
-      if (path === '/test/en.json') {
-        data = JSON.stringify({
-          hello: 'Your Projects',
-          'dashboard.slogan':
-            'Organize translations, monitor progress, and never miss a key.',
-          'dashboard.project_card.translated': 'Translated',
-          'dashboard.project_card.keys': 'Keys',
-        });
-      } else {
-        data = JSON.stringify({
-          hello: 'Vos Projets',
-          'dashboard.slogan':
-            'Organisez vos traductions, suivez leur progression et ne manquez jamais une clée',
-          'dashboard.project_card.translated': 'Traduit',
-        });
-      }
+      const data =
+        path === '/test/en.json'
+          ? JSON.stringify({
+              hello: 'Your Projects',
+              'dashboard.slogan':
+                'Organize translations, monitor progress, and never miss a key.',
+              'dashboard.project_card.translated': 'Translated',
+              'dashboard.project_card.keys': 'Keys',
+            })
+          : JSON.stringify({
+              hello: 'Vos Projets',
+              'dashboard.slogan':
+                'Organisez vos traductions, suivez leur progression et ne manquez jamais une clée',
+              'dashboard.project_card.translated': 'Traduit',
+            });
+
       return Promise.resolve(data);
     });
 

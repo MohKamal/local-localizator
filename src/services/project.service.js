@@ -151,52 +151,55 @@ class ProjectService {
   }
 
   async createProjectFromTranslationFiles(files_data = []) {
-    if (files_data.length <= 0) return undefined;
-    let folder = '';
-    const languages_content = [];
-    await new Promise((resolve) => {
-      let index = 0;
-      files_data.forEach(async (file_data) => {
-        folder = this.getDirectoryFromPath(file_data.path);
-        const content = await window.electronAPI.readFile(file_data.path);
-        if (content)
-          languages_content.push({
-            data: JSON.parse(content),
-            language_code: file_data.code,
-            base: file_data.base,
-          });
-        index++;
-        if (index >= files_data.length) resolve();
-      });
-    });
-    if (languages_content.length > 0) {
-      const translate = this.synchronizeTranslationKeys(languages_content);
-      const languages = [];
-      const translation = {};
-      translate.forEach((tr) => {
-        const lang = predefinedLanguages.find(
-          (x) => x.code === tr.language_code
-        );
-        languages.push(lang);
-        if (!translation[tr.language_code]) {
-          translation[tr.language_code] = {
-            language: lang,
-            data: new PipeConvertStringsToObjects(tr.data)
-              .convert()
-              .value.getAllEntries(),
-          };
-        }
-      });
+    if (files_data.length === 0) return undefined;
 
-      return new Project({
-        name: `[From Files] ${this.generateRandomName()}`,
-        type: 'react',
-        languages: languages,
-        translation: translation,
-        initialize: true,
-        folder: folder,
-      });
+    // Read all files concurrently
+    const filePromises = files_data.map(async (file_data) => {
+      const content = await window.electronAPI.readFile(file_data.path);
+      if (!content) return null;
+
+      return {
+        data: JSON.parse(content),
+        language_code: file_data.code,
+        base: file_data.base,
+        folder: this.getDirectoryFromPath(file_data.path),
+      };
+    });
+
+    const results = (await Promise.all(filePromises)).filter(Boolean); // Remove nulls
+    if (results.length === 0) return undefined;
+
+    // Use folder from first file (or compute common ancestor if needed)
+    const folder = results[0].folder;
+
+    // Synchronize translations
+    const translate = this.synchronizeTranslationKeys(results);
+
+    const languages = [];
+    const translation = {};
+
+    for (const tr of translate) {
+      const lang = predefinedLanguages.find((x) => x.code === tr.language_code);
+      if (!lang) continue; // Skip unsupported languages
+
+      languages.push(lang);
+
+      translation[tr.language_code] = {
+        language: lang,
+        data: new PipeConvertStringsToObjects(tr.data)
+          .convert()
+          .value.getAllEntries(),
+      };
     }
+
+    return new Project({
+      name: `[From Files] ${this.generateRandomName()}`,
+      type: 'react',
+      languages,
+      translation,
+      initialize: true,
+      folder,
+    });
   }
 
   generateRandomName() {
