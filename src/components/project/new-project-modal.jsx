@@ -42,8 +42,18 @@ const NewProjectModal = ({
   const isValidFolderPathSyntax = useCallback((input) => {
     if (typeof input !== 'string' || !input.trim()) return false;
     const path = input.trim();
-    if (/[\x00-\x1f\x7f<>:"|?*]/.test(path)) return false;
-    if (path.includes('../') || path.includes('..\\')) return false;
+
+    // Disallow null bytes, control chars, and OS-forbidden characters
+    if (/[\x00-\x1f\x7f<>"|?*]/.test(path)) return false;
+
+    // Optional: Block path traversal attempts
+    if (path.includes('../') || path.includes('..\\') || path === '..')
+      return false;
+
+    // Optional: Allow only non-empty paths without leading/trailing whitespace (already trimmed)
+
+    // Additional: On Windows, you might want to validate drive letter format
+    // e.g., reject 'C:', but allow 'C:\' or 'C:/' — but that's optional for syntax-only check
     return true;
   }, []);
 
