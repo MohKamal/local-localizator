@@ -31,7 +31,7 @@ const ProjectCard = memo(({ project, onOpen, t }) => {
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}`}
         >
           {statusIcon}
-          <span className="ml-1 capitalize">{project.status}</span>
+          <span className="ml-1 capitalize">{t(`project.status.${project.status}`)}</span>
         </span>
       </div>
 

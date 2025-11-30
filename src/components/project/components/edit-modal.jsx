@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Globe, X } from 'lucide-react';
 import { useProject } from '../../../providers/project.provider';
+import { useI18n } from '../../../providers/i18n.provider';
 
 const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
   const { selectedProject } = useProject();
@@ -13,6 +14,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
   const [tags, setTags] = useState(initialData?.tags || []);
   const [newTag, setNewTag] = useState('');
   const [translations, setTranslations] = useState({});
+  const { t } = useI18n();
 
   useEffect(() => {
     if (initialData?.id !== undefined) setId(initialData.id);
@@ -111,33 +113,33 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
         <div className="p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Key
+              {t('edit_key.key_title')}
             </label>
             <input
               type="text"
               value={newKey}
               onChange={(e) => setNewKey(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter translation key"
+              placeholder={t('edit_key.palceholder.key')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
+              {t('edit_key.description_title')}
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter description"
+              placeholder={t('edit_key.palceholder.description')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tags
+              {t('edit_key.tags_title')}
             </label>
             <div className="flex gap-2 mb-2">
               <input
@@ -146,13 +148,13 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Add tag"
+                placeholder={t('edit_key.palceholder.tag')}
               />
               <button
                 onClick={handleAddTag}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Add
+                {t('edit_key.add_title')}
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -177,7 +179,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
           {selectedProject.languages.length > 0 && (
             <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-6">
-                Enter Translations
+                {t('edit_key.translation_title')}
               </h2>
 
               <div className="space-y-4">
@@ -202,7 +204,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
                         onChange={(e) =>
                           handleTranslationChange(language.code, e.target.value)
                         }
-                        placeholder={`Enter translation in ${language.name}...`}
+                        placeholder={`${t('edit_key.placeholder.translation')} ${language.name}...`}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all duration-200"
                       />
                     </div>
@@ -219,10 +221,10 @@ const EditModal = ({ isOpen, onClose, onSave, initialData }) => {
                 <Globe className="w-8 h-8 text-indigo-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                No Languages Selected
+                {t('edit_key.no_language_title')}
               </h3>
               <p className="text-gray-600">
-                Choose languages to start entering translations
+                {t('edit_key.no_language_subtitle')}
               </p>
             </div>
           )}

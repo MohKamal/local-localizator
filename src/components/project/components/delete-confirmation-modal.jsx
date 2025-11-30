@@ -1,22 +1,25 @@
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useState } from 'react';
+import { X } from 'lucide-react';
+import { useI18n } from '../../../providers/i18n.provider';
 
 const DeleteConfirmation = ({ isOpen, onCancel, onDelete }) => {
-  const [confirmationText, setConfirmationText] = useState("");
+  const [confirmationText, setConfirmationText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const { t } = useI18n();
+
   const handleDelete = async () => {
-    if (confirmationText.toLowerCase() === "delete") {
+    if (confirmationText.toLowerCase() === 'delete') {
       setIsDeleting(true);
       await new Promise((resolve) => setTimeout(resolve, 500));
       setIsDeleting(false);
-      setConfirmationText("");
+      setConfirmationText('');
       onDelete();
     }
   };
 
   const handleCancel = () => {
     onCancel();
-    setConfirmationText("");
+    setConfirmationText('');
   };
   if (!isOpen) return null;
   return (
@@ -60,12 +63,12 @@ const DeleteConfirmation = ({ isOpen, onCancel, onDelete }) => {
 
           {/* Modal Header */}
           <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center">
-            Are you sure?
+            {t('delete_modal.question')}
           </h2>
           <p className="text-slate-600 mb-6 text-center">
-            This action cannot be undone. To confirm deletion, please type{" "}
-            <span className="font-mono font-bold text-red-600">delete</span>{" "}
-            below.
+            {t('delete_modal.explination1')}{' '}
+            <span className="font-mono font-bold text-red-600">delete</span>{' '}
+            {t('delete_modal.explination2')}.
           </p>
 
           {/* Confirmation Input */}
@@ -74,7 +77,7 @@ const DeleteConfirmation = ({ isOpen, onCancel, onDelete }) => {
               type="text"
               value={confirmationText}
               onChange={(e) => setConfirmationText(e.target.value)}
-              placeholder="Type 'delete' to confirm"
+              placeholder={t('delete_modal.placeholder.delete')}
               className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
               disabled={isDeleting}
             />
@@ -87,22 +90,22 @@ const DeleteConfirmation = ({ isOpen, onCancel, onDelete }) => {
               className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
               disabled={isDeleting}
             >
-              Cancel
+              {t('delete_modal.button.cancel')}
             </button>
             <button
               onClick={handleDelete}
               disabled={
-                confirmationText.toLowerCase() !== "delete" || isDeleting
+                confirmationText.toLowerCase() !== 'delete' || isDeleting
               }
               className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] disabled:hover:scale-100"
             >
               {isDeleting ? (
                 <div className="flex items-center justify-center">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Deleting...
+                  {t('delete_modal.status')}
                 </div>
               ) : (
-                "Delete"
+                t('delete_modal.button.delete')
               )}
             </button>
           </div>
