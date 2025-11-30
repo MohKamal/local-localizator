@@ -13,6 +13,7 @@ import {
 import EditModal from './edit-modal';
 import ConfirmationModal from './confirmation-modal';
 import { useProject } from '../../../providers/project.provider';
+import { useI18n } from '../../../providers/i18n.provider';
 
 const TranslationTable = () => {
   const { selectedProject, setSelectedProject } = useProject();
@@ -29,6 +30,7 @@ const TranslationTable = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const { t } = useI18n();
 
   const toggleRowSelection = (id) => {
     const newSelected = new Set(selectedRows);
@@ -191,7 +193,7 @@ const TranslationTable = () => {
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-800">
-            Translation Management
+            {t('translation_table.title')}
           </h1>
           <div className="flex gap-3">
             <button
@@ -199,7 +201,7 @@ const TranslationTable = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Create Key
+              {t('translation_table.button.create')}
             </button>
           </div>
         </div>
@@ -211,8 +213,10 @@ const TranslationTable = () => {
           <div className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             <span>
-              {selectedProject.languages.length} language
-              {selectedProject.languages.length !== 1 ? 's' : ''} selected
+              {selectedProject.languages.length}{' '}
+              {t('translation_table.infos.language')}
+              {selectedProject.languages.length !== 1 ? 's' : ''}{' '}
+              {t('translation_table.infos.selected')}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -224,7 +228,7 @@ const TranslationTable = () => {
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             <span>
-              Last modified:{' '}
+              {t('translation_table.infos.last_modified')}:{' '}
               {selectedProject.getLastModifiedAsString() || 'N/A'}
             </span>
           </div>
@@ -241,7 +245,7 @@ const TranslationTable = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search keys and values..."
+                  placeholder={t('translation_table.filters.input.placeholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -255,7 +259,7 @@ const TranslationTable = () => {
                   className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex items-center gap-2"
                 >
                   <X className="h-4 w-4" />
-                  Clear All
+                  {t('translation_table.filters.clear_all')}
                 </button>
               )}
             </div>
@@ -287,7 +291,7 @@ const TranslationTable = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Tag className="h-4 w-4 text-gray-500" />
                   <span className="text-sm font-medium text-gray-700">
-                    Filter by tags:
+                    {t('translation_table.filters.tag_title')}:
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -314,7 +318,7 @@ const TranslationTable = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-gray-700">
-                Rows per page:
+                {t('translation_table.filters.rows_per_page')}:
               </span>
               <select
                 value={rowsPerPage}
@@ -329,9 +333,11 @@ const TranslationTable = () => {
             </div>
 
             <div className="text-sm text-gray-600">
-              Showing {(currentPage - 1) * rowsPerPage + 1} to{' '}
-              {Math.min(currentPage * rowsPerPage, filteredItems.length)} of{' '}
-              {data.length} keys
+              {t('translation_table.filters.showing')}{' '}
+              {(currentPage - 1) * rowsPerPage + 1} to{' '}
+              {Math.min(currentPage * rowsPerPage, filteredItems.length)}{' '}
+              {t('general.of')} {data.length}{' '}
+              {t('translation_table.filters.keys')}
             </div>
           </div>
         </div>
@@ -356,16 +362,16 @@ const TranslationTable = () => {
                     />
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">
-                    Key
+                    {t('translation_table.table.titles.key')}
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">
-                    Tags
+                    {t('translation_table.table.titles.tags')}
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">
-                    Description
+                    {t('translation_table.table.titles.description')}
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">
-                    Actions
+                    {t('translation_table.table.titles.actions')}
                   </th>
                 </tr>
               </thead>
@@ -441,7 +447,7 @@ const TranslationTable = () => {
                         : 'bg-white text-gray-700 hover:bg-gray-50'
                     } border border-gray-300`}
                   >
-                    Previous
+                    {t('translation_table.table.pagination.previous')}
                   </button>
 
                   {getPageNumbers().map((page, index) => (
@@ -474,7 +480,7 @@ const TranslationTable = () => {
                         : 'bg-white text-gray-700 hover:bg-gray-50'
                     } border border-gray-300`}
                   >
-                    Next
+                    {t('translation_table.table.pagination.next')}
                   </button>
                 </nav>
               </div>
@@ -483,12 +489,14 @@ const TranslationTable = () => {
 
           {data.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-gray-400 mb-2">No translations found</div>
+              <div className="text-gray-400 mb-2">
+                {t('translation_table.no_translation')}
+              </div>
               <button
                 onClick={handleCreateNew}
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Create your first key
+                {t('translation_table.create_first_key')}
               </button>
             </div>
           )}
@@ -498,14 +506,14 @@ const TranslationTable = () => {
           <div className="mt-4 flex justify-between items-center">
             <div className="text-sm text-gray-600">
               {selectedRows.size} item{selectedRows.size !== 1 ? 's' : ''}{' '}
-              selected
+              {t('translation_table.rows_selected')}
             </div>
             <button
               onClick={() => setShowDeleteModal(true)}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
-              Delete Selected
+              {t('translation_table.delete_selected')}
             </button>
           </div>
         )}

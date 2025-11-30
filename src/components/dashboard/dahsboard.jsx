@@ -54,9 +54,9 @@ const Dashboard = () => {
         );
 
         const updatedProject = updatedProjects.find((p) => p.id === project.id);
-        await updatedProject.save();
+        await project.save();
         setProjects(updatedProjects);
-        setSelectedProject(updatedProject);
+        setSelectedProject(project);
       } else {
         // Create new
         await project.save();

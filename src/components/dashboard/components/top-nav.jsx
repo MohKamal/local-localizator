@@ -1,10 +1,10 @@
-import { Plus, Upload, ChevronLeft } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useProject } from "../../../providers/project.provider";
-import { useI18n } from "../../../providers/i18n.provider";
-import LanguageSelector from "./language-selector";
-import { useView } from "../../../providers/view.provider";
-import { useCallback } from "react";
+import { Plus, Upload, ChevronLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useProject } from '../../../providers/project.provider';
+import { useI18n } from '../../../providers/i18n.provider';
+import LanguageSelector from './language-selector';
+import { useView } from '../../../providers/view.provider';
+import { useCallback } from 'react';
 
 const TopNav = ({ handleCreateNew }) => {
   const { currentView, setCurrentView } = useView();
@@ -12,17 +12,19 @@ const TopNav = ({ handleCreateNew }) => {
   const { t } = useI18n();
 
   const handleBackToDashboard = useCallback(() => {
-    setCurrentView("dashboard");
+    setCurrentView('dashboard');
   }, [setCurrentView]);
 
   const handleFileImportClick = useCallback(() => {
-    setCurrentView("import");
+    setCurrentView('import');
   }, [setCurrentView]);
 
   const title =
-    currentView !== "dashboard"
-      ? selectedProject?.name || t("label.loading")
-      : "Dashboard";
+    currentView === 'dashboard'
+      ? t('nav.dashboard.title')
+      : currentView === 'project-details'
+        ? selectedProject?.name || t('nav.label.loading')
+        : t('nav.dashboard.goback');
 
   return (
     <nav
@@ -34,14 +36,14 @@ const TopNav = ({ handleCreateNew }) => {
           {/* Left: Back button + Title */}
           <div className="flex items-center space-x-4">
             <AnimatePresence>
-              {currentView !== "dashboard" && (
+              {currentView !== 'dashboard' && (
                 <motion.button
                   key="back-button"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleBackToDashboard}
                   className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-                  aria-label={t("button.back.to.dashboard")}
+                  aria-label={t('button.back.to.dashboard')}
                 >
                   <ChevronLeft
                     className="w-5 h-5 text-gray-600"
@@ -57,7 +59,7 @@ const TopNav = ({ handleCreateNew }) => {
           </div>
 
           {/* Right: Actions (only on dashboard) */}
-          {currentView === "dashboard" && (
+          {currentView === 'dashboard' && (
             <div className="flex items-center space-x-3">
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -66,7 +68,7 @@ const TopNav = ({ handleCreateNew }) => {
                 className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <Upload className="w-4 h-4" aria-hidden="true" />
-                <span>{t("button.import.project")}</span>
+                <span>{t('button.import.project')}</span>
               </motion.button>
 
               <motion.button
@@ -76,7 +78,7 @@ const TopNav = ({ handleCreateNew }) => {
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="w-4 h-4" aria-hidden="true" />
-                <span>{t("button.new.project")}</span>
+                <span>{t('button.new.project')}</span>
               </motion.button>
 
               <LanguageSelector />

@@ -5,6 +5,7 @@ import ioService from '../../services/io.service';
 import projectService from '../../services/project.service';
 import { useView } from '../../providers/view.provider';
 import { useProject } from '../../providers/project.provider';
+import { useI18n } from '../../providers/i18n.provider';
 
 const FileSelection = ({ projects, setProjects }) => {
   const [isFilesVisible, setIsFilesVisible] = useState(false);
@@ -14,6 +15,7 @@ const FileSelection = ({ projects, setProjects }) => {
   const [showDropdowns, setShowDropdowns] = useState({});
   const [files, setFiles] = useState([]);
   const [baseFileId, setBaseFileId] = useState(0); // Default base file
+  const { t } = useI18n();
 
   const getFileNameFromPath = (filePath) => {
     return filePath.split('/').pop().split('\\').pop();
@@ -154,16 +156,17 @@ const FileSelection = ({ projects, setProjects }) => {
   const toggleBaseFile = (fileId) => {
     setBaseFileId(fileId);
   };
+
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 pt-12">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Import Files
+            {t('import.title')}
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Select languages files or project's files
+            {t('import.subtitle')}
           </p>
         </div>
 
@@ -176,17 +179,17 @@ const FileSelection = ({ projects, setProjects }) => {
                 <Upload className="w-12 h-12 text-indigo-600" />
               </div>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                Ready to Assign Languages?
+                {t('import.button.title')}
               </h2>
               <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                Click below to select the files.
+                {t('import.button.subtitle')}
               </p>
               <button
                 onClick={handleUploadFiles}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto"
               >
                 <File className="w-5 h-5" />
-                Import
+                {t('import.button.text')}
               </button>
             </div>
           ) : (
@@ -194,11 +197,11 @@ const FileSelection = ({ projects, setProjects }) => {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
-                  Document Configuration
+                  {t('import.config.title')}
                 </h2>
                 <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                  {Object.keys(selectedLanguages).length} of {files.length}{' '}
-                  files selected
+                  {Object.keys(selectedLanguages).length} {t('general.of')}{' '}
+                  {files.length} {t('import.config.file_selected')}
                 </div>
               </div>
 
@@ -243,7 +246,7 @@ const FileSelection = ({ projects, setProjects }) => {
                               {isBaseFile && (
                                 <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
                                   <Star className="w-3 h-3 fill-amber-500" />
-                                  Base
+                                  {t('import.config.base')}
                                 </span>
                               )}
                             </div>
@@ -288,7 +291,7 @@ const FileSelection = ({ projects, setProjects }) => {
                                 </span>
                               ) : (
                                 <span className="text-gray-400">
-                                  Select language
+                                  {t('import.config.select_language')}
                                 </span>
                               )}
                               <ChevronDown
@@ -337,7 +340,7 @@ const FileSelection = ({ projects, setProjects }) => {
                   onClick={() => setIsFilesVisible(false)}
                   className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium rounded-lg hover:bg-gray-100 transition-colors duration-200"
                 >
-                  Back
+                  {t('import.button.back')}
                 </button>
                 <button
                   onClick={handleSubmit}
@@ -349,7 +352,7 @@ const FileSelection = ({ projects, setProjects }) => {
                   }`}
                 >
                   <Check className="w-4 h-4" />
-                  Confirm Configuration
+                  {t('import.button.confirm')}
                 </button>
               </div>
             </div>
@@ -359,8 +362,8 @@ const FileSelection = ({ projects, setProjects }) => {
         {/* Info Footer */}
         <div className="text-center mt-8 text-gray-500 text-sm">
           <p>
-            Each language can only be assigned to one document. The "Other"
-            option can be used for multiple files if needed.
+            {t('import.doc.line1')}
+            {t('import.doc.line2')}
           </p>
         </div>
       </div>

@@ -12,6 +12,7 @@ import { Project } from '../../models/project';
 import predefinedLanguages from '../../utils/languages';
 import projectStructureOptions from '../../utils/projectStructures';
 import DeleteConfirmation from './components/delete-confirmation-modal';
+import { useI18n } from '../../providers/i18n.provider';
 
 const NewProjectModal = ({
   isOpen,
@@ -38,6 +39,8 @@ const NewProjectModal = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const { t } = useI18n();
 
   useEffect(() => {
     if (initialData?.name !== undefined) setProjectName(initialData.name);
@@ -307,8 +310,8 @@ const NewProjectModal = ({
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <h2 className="text-2xl font-bold text-gray-800">
               {isCreating
-                ? 'Create New Project'
-                : `Editing: ${initialData?.name || ''}`}
+                ? t('new_project.default_title')
+                : `${t('new_project.editing_title')}: ${initialData?.name || ''}`}
             </h2>
             <button
               onClick={onClose}
@@ -324,7 +327,7 @@ const NewProjectModal = ({
             {/* Project Name */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Project Name
+                {t('new_project.input.name')}
               </label>
               <input
                 type="text"
@@ -335,7 +338,7 @@ const NewProjectModal = ({
                   if (!validateProjectName(val)) {
                     setErrors((prev) => ({
                       ...prev,
-                      name: 'Only letters, numbers, spaces, and underscores allowed',
+                      name: t('new_project.errors.name'),
                     }));
                   } else {
                     clearError('name');
@@ -344,7 +347,7 @@ const NewProjectModal = ({
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.name ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Enter project name"
+                placeholder={t('new_project.input.name.placeholder')}
               />
               {errors.name && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -356,21 +359,21 @@ const NewProjectModal = ({
             {/* Description */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
+                {t('new_project.input.description')}
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter description"
+                placeholder={t('new_project.input.description.placeholder')}
               />
             </div>
 
             {/* Project Folder */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Project Folder
+                {t('new_project.input.folder')}
               </label>
               <div className="relative">
                 <input
@@ -381,7 +384,7 @@ const NewProjectModal = ({
                   className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.folder ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Click to select folder or paste path"
+                  placeholder={t('new_project.input.folder.placeholder')}
                 />
                 <Folder
                   className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
@@ -398,7 +401,7 @@ const NewProjectModal = ({
             {/* Project Type */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                Project Type
+                {t('new_project.input.type')}
               </label>
               <div className="flex flex-wrap gap-4">
                 {projectStructureOptions.map((option) => (
@@ -423,7 +426,7 @@ const NewProjectModal = ({
             {isCustomProject && hasProjectFolder && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Files Naming Structure
+                  {t('new_project.input.stucture')}
                 </label>
                 <input
                   type="text"
@@ -435,7 +438,7 @@ const NewProjectModal = ({
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.structure ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="e.g., /{lang}/local.json"
+                  placeholder={t('new_project.input.stucture.placeholder')}
                 />
                 {errors.structure && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -447,18 +450,19 @@ const NewProjectModal = ({
 
             {!isCustomProject && (
               <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-sm text-blue-700">
-                Project structure customization is only available for{' '}
-                <strong>Custom</strong> projects.
+                {t('new_project.input.custom.sentence')}{' '}
+                <strong>{t('new_project.input.custom.sentence_custom')}</strong>{' '}
+                {t('new_project.input.custom.sentence_projects')}.
               </div>
             )}
 
             {/* Object Structure Type */}
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                Select File Structure
+                {t('new_project.input.object_structure')}
               </h2>
               <p className="text-slate-600">
-                Choose between Flated or Nested structure
+                {t('new_project.input.object_structure_sub')}
               </p>
             </div>
 
@@ -485,8 +489,8 @@ const NewProjectModal = ({
                     </span>
                     <p className="text-slate-600 text-sm mt-1">
                       {type === 'flated'
-                        ? 'Flat, single-level structure'
-                        : 'Hierarchical, multi-level structure'}
+                        ? t('new_project.input.flat_description')
+                        : t('new_project.input.nested_description')}
                     </p>
                   </div>
                 </label>
@@ -501,14 +505,15 @@ const NewProjectModal = ({
                   aria-hidden="true"
                 />
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  Language Selection
+                  {t('new_project.input.language_selection')}
                 </h2>
                 <p className="text-gray-600">
-                  Choose your preferred languages or add custom ones
+                  {t('new_project.input.language_selection_sub')}
                 </p>
                 <p className="text-sm text-gray-500 mt-2">
-                  {languages.length} language{languages.length !== 1 ? 's' : ''}{' '}
-                  selected
+                  {languages.length} {t('new_project.input.languages.language')}
+                  {languages.length !== 1 ? 's' : ''}{' '}
+                  {t('new_project.input.languages.selected')}
                 </p>
               </div>
 
@@ -530,7 +535,7 @@ const NewProjectModal = ({
                       )}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800">
-                          Current Base Language
+                          {t('new_project.input.base_language')}
                         </h3>
                         <p className="text-gray-600">
                           {currentBaseLanguage.name} (
@@ -542,7 +547,7 @@ const NewProjectModal = ({
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                       className="flex items-center space-x-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-4 py-2 rounded-lg"
                     >
-                      <span>Change</span>
+                      <span>{t('new_project.input.base_language_change')}</span>
                       <ChevronsUpDown className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </div>
@@ -553,7 +558,7 @@ const NewProjectModal = ({
                 <div className="bg-white rounded-2xl shadow-xl border border-gray-200 mb-6">
                   <div className="p-4 border-b border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-800">
-                      Select New Base Language
+                      {t('new_project.input.base_language_title')}
                     </h3>
                   </div>
                   <div className="max-h-64 overflow-y-auto">
@@ -592,7 +597,7 @@ const NewProjectModal = ({
               {languages.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                    Selected Languages
+                    {t('new_project.input.language.selected')}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {languages.map((lang) => (
@@ -627,7 +632,7 @@ const NewProjectModal = ({
               {/* Predefined Languages */}
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                  Available Languages
+                  {t('new_project.input.language.available')}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {predefinedLanguages.map((lang) => (
@@ -659,7 +664,7 @@ const NewProjectModal = ({
               <div className="border-t pt-6">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-semibold text-gray-800">
-                    Add Custom Language
+                    {t('new_project.input.language.add_custom')}
                   </h3>
                   <button
                     type="button"
@@ -678,7 +683,7 @@ const NewProjectModal = ({
                   >
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Language Name *
+                        {t('new_project.input.language.custom.name')}
                       </label>
                       <input
                         type="text"
@@ -695,7 +700,7 @@ const NewProjectModal = ({
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Language Code *
+                        {t('new_project.input.language.custom.code')}
                       </label>
                       <input
                         type="text"
@@ -710,8 +715,7 @@ const NewProjectModal = ({
                         required
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        Letters, numbers, hyphens, underscores only (max 10
-                        chars)
+                        {t('new_project.input.language.custom.code.help')}
                       </p>
                     </div>
                     {errors.customLanguage && (
@@ -724,7 +728,7 @@ const NewProjectModal = ({
                         type="submit"
                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm"
                       >
-                        Add Custom Language
+                        {t('new_project.input.language.custom.button.add')}
                       </button>
                     </div>
                   </form>
@@ -741,7 +745,7 @@ const NewProjectModal = ({
                 onClick={handleDeleteConfirmation}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
               >
-                Delete
+                {t('new_project.button.delete')}
               </button>
             )}
             <div className="flex space-x-3 ml-auto">
@@ -750,7 +754,7 @@ const NewProjectModal = ({
                 onClick={onClose}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium rounded-lg"
               >
-                Cancel
+                {t('new_project.button.cancel')}
               </button>
               <button
                 type="button"
